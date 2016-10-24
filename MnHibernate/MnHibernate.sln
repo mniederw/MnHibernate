@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MnHibernate", "MnHibernate.csproj", "{0A5FDB03-06BA-494A-A5F9-63918458EECF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0A5FDB03-06BA-494A-A5F9-63918458EECF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A5FDB03-06BA-494A-A5F9-63918458EECF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A5FDB03-06BA-494A-A5F9-63918458EECF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A5FDB03-06BA-494A-A5F9-63918458EECF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
