@@ -10,10 +10,17 @@ function OutInfo                              ( [String] $line ){ Write-Host -Fo
 function OutProgress                          ( [String] $line ){ Write-Host -ForegroundColor DarkGray            $line; }
 function OutProgressText                      ( [String] $line ){ Write-Host -ForegroundColor DarkGray -NoNewLine $line; }
 function OutQuestion                          ( [String] $line ){ Write-Host -ForegroundColor Cyan     -NoNewline $line; }
+function FsEntryEsc                           ( [String] $fsentry ){ if( $fsentry -eq "" ){ throw [Exception] "Empty file name not allowed"; } return [String] [Management.Automation.WildcardPattern]::Escape($fsentry); }
 function FsEntryMakeTrailingBackslash         ( [String] $fsEntry ){ [String] $result = $fsEntry; if( -not $result.EndsWith("\") ){ $result += "\"; } return [String] $result; }
 function FsEntryRemoveTrailingBackslash       ( [String] $fsEntry ){ [String] $result = $fsEntry; if( $result -ne "" ){ while( $result.EndsWith("\") ){ $result = $result.Remove($result.Length-1); } if( $result -eq "" ){ $result = $fsEntry; } } return [String] $result; } # leading backslashes are not removed.
 function FsEntryGetFileName                   ( [String] $fsEntry ){ return [String] [System.IO.Path]::GetFileName((FsEntryRemoveTrailingBackslash $fsEntry)); }
 function FsEntryGetAbsolutePath               ( [String] $fsEntry ){ return [String] ($ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($fsEntry)); }
+function FsEntryGetParentDir                  ( [String] $fsEntry ){ return [String] (Split-Path -LiteralPath (FsEntryGetAbsolutePath $fsEntry)); }
+function FsEntryCreateParentDir               ( [String] $fsEntry ){ [String] $dir = FsEntryGetParentDir $fsEntry; DirCreate $dir; }
+function FileAssertExists                     ( [String] $file ){ if( (FileNotExists $file) ){ throw [Exception] "File not exists: '$file'."; } }
+function FileExists                           ( [String] $file ){ if( $file -eq "" ){ throw [Exception] "Empty file name not allowed"; } [String] $f2 = FsEntryGetAbsolutePath $file; if( Test-Path -PathType Leaf -LiteralPath $f2 ){ return $true; } return [System.IO.File]::Exists($f2); }
+function FileNotExists                        ( [String] $file ){ return [Boolean] -not (FileExists $file); }
+function FileDelete                           ( [String] $file, [Boolean] $ignoreReadonly = $true ){ if( (FileExists $file) ){ OutProgress "FileDelete$(switch($ignoreReadonly){($true){''}default{'CareReadonly'}}) '$file'"; Remove-Item -Force:$ignoreReadonly -LiteralPath $file; } }
 function DirExists                            ( [String] $dir ){ try{ return [Boolean] (Test-Path -PathType Container -LiteralPath $dir ); }catch{ throw [Exception] "DirExists($dir) failed because $($_.Exception.Message)"; } }
 function DirCreate                            ( [String] $dir ){ New-Item -type directory -Force $dir | Out-Null; } # create dir if it not yet exists,;we do not call OutProgress because is not an important change.
 function DirListDirs                          ( [String] $dir ){ return [String[]] (@()+(Get-ChildItem -Force -Directory -Path $dir | ForEach-Object{ $_.FullName })); }
@@ -22,11 +29,23 @@ function ScriptGetTopCaller                   (){ [String] $f = $global:MyInvoca
 function ProcessIsRunningInElevatedAdminMode  (){ return [Boolean] ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"); }
 function ProcessRestartInElevatedAdminMode    (){ if( -not (ProcessIsRunningInElevatedAdminMode) ){ [String[]] $cmd = @( (ScriptGetTopCaller) ) + $sel; OutProgress "Not running in elevated administrator mode so elevate current script and exit: `n  $cmd"; Start-Process -Verb "RunAs" -FilePath "powershell.exe" -ArgumentList "& `"$cmd`" "; [Environment]::Exit("0"); throw [Exception] "Exit done, but it did not work, so it throws now an exception."; } }
 function ProcessFindExecutableInPath          ( [String] $exec ){ [Object] $p = (Get-Command $exec -ErrorAction SilentlyContinue); if( $p -eq $null ){ return [String] ""; } return [String] $p.Source; } # return full path or empty if not found
+function ToolCreateLnkIfNotExists             ( [Boolean] $forceRecreate, [String] $workDir, [String] $lnkFile, [String] $srcFile, [String[]] $arguments = @(), [Boolean] $runElevated = $false, [Boolean] $ignoreIfSrcFileNotExists = $false ){
+                                                [String] $descr = $srcFile; if( $ignoreIfSrcFileNotExists -and (FileNotExists $srcFile) ){ return; } FileAssertExists $srcFile; if( $forceRecreate ){ FileDelete $lnkFile; }
+                                                if( (FileExists $lnkFile) ){ OutVerbose "Unchanged: $lnkFile"; }else{
+                                                  if( $workDir -eq "" ){ $workDir = FsEntryGetParentDir $srcFile; }
+                                                  OutProgress "CreateShortcut '$lnkFile'";
+                                                  try{
+                                                    FsEntryCreateParentDir $lnkFile; [Object] $wshShell = New-Object -comObject WScript.Shell; [Object] $s = $wshShell.CreateShortcut((FsEntryEsc $lnkFile));
+                                                    $s.TargetPath = FsEntryEsc $srcFile; $s.Arguments = [String]$arguments; $s.WorkingDirectory = FsEntryEsc $workDir; $s.Description = $descr; $s.Save();
+                                                  }catch{
+                                                    throw [Exception] "CreateLnk('$workDir','$lnkFile','$srcFile','$arguments','$descr') failed because $($_.Exception.Message)";
+                                                  }
+                                                  if( $runElevated ){ [Byte[]] $bytes = [IO.File]::ReadAllBytes($lnkFile); $bytes[0x15] = $bytes[0x15] -bor 0x20; [IO.File]::WriteAllBytes($lnkFile,$bytes); } } }
 function RebuildProg                          ( [String] $srcProjDir ){
                                                 [String] $name = FsEntryGetFileName $srcProjDir;
                                                 [String] $sln = "$srcProjDir\$name.sln";
                                                 [String] $intermedExe = "$srcProjDir\Bin\Release\$name.exe";
-                                                [String] $tarDir = "$srcProjDir\Binx";
+                                                [String] $tarDir = "$srcProjDir\Bin";
                                                 OutProgress "RebuildProg `"$tarDir\$name.exe`"";
                                                 if( (ProcessFindExecutableInPath "msbuild") -eq "" ){ throw [Exception] "Missing msbuild in path, make sure it can be found in path, usually it is at: `"${Env:programfiles (x86)}\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\amd64\MSBuild.exe`""; }
                                                 OutProgress "& `"msbuild`" $sln /nologo /verbosity:minimal /m /target:Clean,Build /p:Configuration=Release /p:Platform=`"Any CPU`"";
@@ -34,37 +53,44 @@ function RebuildProg                          ( [String] $srcProjDir ){
                                                 & "msbuild" $sln /nologo /verbosity:minimal /m /target:Clean,Build /p:Configuration=Release /p:Platform="Any CPU";
                                                 OutProgress "CopyTo `"$tarDir`"";
                                                 DirCreate $tarDir; Copy-Item -Force -LiteralPath $intermedExe -Destination $tarDir; 
-                                                OutProgress "Clean";
+                                                OutProgress "MsBuild-Clean";
                                                 & "msbuild" $sln /nologo /verbosity:normal /m /target:Clean /p:Configuration=Release /p:Platform="Any CPU" /noconsolelogger;
                                               }
 function UninstallProg                        ( [String] $tarDir ){ OutProgress "RemoveDir '$tarDir'. "; if( DirExists $tarDir ){ ProcessRestartInElevatedAdminMode; 
                                                 Remove-Item -Force -Recurse -LiteralPath $tarDir; } }
-function InstallProg                          ( [String] $srcProjDir, [String] $tarParentDir ){
+function InstallProg                          ( [String] $srcProjDir, [String] $tarDir ){
                                                 [String] $name = FsEntryGetFileName $srcProjDir;
-                                                [String] $exe = "$srcProjDir\Binx\$name.exe";
-                                                OutProgress "Copy '$exe' `n  to '$tarParentDir'. ";
+                                                [String] $srcExe = "$srcProjDir\Bin\$name.exe";
+                                                [String] $tarExe = "$tarDir\$name.exe";
+                                                OutProgress "Copy '$srcExe' `n  to '$tarDir'. ";
                                                 ProcessRestartInElevatedAdminMode;
-                                                Copy-Item -Force -LiteralPath $exe -Destination $tarParentDir; 
+                                                DirCreate $tarDir;
+                                                Copy-Item -Force -LiteralPath $srcExe -Destination $tarExe;
+                                                ToolCreateLnkIfNotExists $true "" "$env:USERPROFILE\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\MnHibernate.lnk"    $tarExe;
+                                                ToolCreateLnkIfNotExists $true "" "$env:USERPROFILE\AppData\Roaming\Microsoft\Internet Explorer\Quick Launch\MnHibernate.lnk" $tarExe;
                                               }
-[String] $srcProjDir = "$PSScriptRoot\MnHibernate";
-[String] $tarDir = "$env:ProgramFiles\MnHibernate";
-OutInfo         "Install Menu";
-OutInfo         "------------`n";
-OutInfo         "  Source Project Dir: `"$srcProjDir`"";
-OutInfo         "  Target Install Dir: `"$tarDir`" `n";
-OutInfo         "  I = Install. ";
-OutInfo         "  N = Uninstall. ";
-OutInfo         "  R = Rebuild program by the source, requires msbuild program located in path environment variable. ";
-OutInfo         "  Q = Quit. `n";
-if( $sel -ne "" ){ OutProgress "Selection: $sel "; }
-while( @("I","N","R","Q") -notcontains $sel ){
-  OutQuestion "Enter selection case insensitive and press enter: ";
-  $sel = (Read-Host);
-}
-$Global:ArgsForRestartInElevatedAdminMode = $sel; 
-if( $sel -eq "N"             ){ UninstallProg $tarDir; }
-if( $sel -eq "I"             ){ InstallProg $srcProjDir $tarDir; }
-if( $sel -eq "R"             ){ RebuildProg $srcProjDir; }
-if( $sel -eq "Q"             ){ OutProgress "Quit."; }
-OutQuestion "Finished. Press enter to exit. "; Read-Host;
 
+while($true){
+  [String] $srcProjDir = "$PSScriptRoot\MnHibernate";
+  [String] $tarDir = "$env:ProgramFiles\MnHibernate";
+  OutInfo  "Install Menu";
+  OutInfo  "------------`n";
+  OutInfo  "  Source Project Dir: `"$srcProjDir`"";
+  OutInfo  "  Target Install Dir: `"$tarDir`" `n";
+  OutInfo  "  I = Install by copy rebuilt program exe to target install dir and create shortcuts to prg-menu and toolbar. ";
+  OutInfo  "  N = Uninstall. ";
+  OutInfo  "  R = Rebuild program by the source, requires msbuild program located in path environment variable. ";
+  OutInfo  "  Q = Quit. `n";
+  if( $sel -ne "" ){ OutProgress "Selection: $sel "; }
+  while( @("I","N","R","Q") -notcontains $sel ){
+    OutQuestion "Enter selection case insensitive and press enter: ";
+    $sel = (Read-Host);
+  }
+  $Global:ArgsForRestartInElevatedAdminMode = $sel; 
+  if( $sel -eq "N" ){ UninstallProg $tarDir; }
+  if( $sel -eq "I" ){ InstallProg $srcProjDir $tarDir; }
+  if( $sel -eq "R" ){ RebuildProg $srcProjDir; }
+  if( $sel -eq "Q" ){ OutProgress "Quit."; Start-Sleep 1; Return; }
+  $sel = "";
+  OutInfo "";
+}
