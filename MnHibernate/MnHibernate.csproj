@@ -68,7 +68,6 @@
     <Compile Include="Program.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Readme.txt" />
     <Content Include="AssemblyIsCompatibleWithFx20SoCompatibleToWin2000.txt" />
     <Content Include="MnHibernate.ico" />
   </ItemGroup>
@@ -103,7 +102,7 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
+    <None Include="MnHibernate.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

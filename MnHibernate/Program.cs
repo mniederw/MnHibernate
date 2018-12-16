@@ -10,7 +10,7 @@ using System.Windows.Forms;
 [assembly: AssemblyConfiguration("For .NET FX20 for 2K,XP,VISTA,W7,W8,W10 and up.")]
 [assembly: AssemblyCompany("Marc Niederwieser")]
 [assembly: AssemblyProduct("MnHibernate")]
-[assembly: AssemblyCopyright("© 2010-2016 Marc Niederwieser, Switzerland, marc.niederwieser@gmx.net. Freeware!")]
+[assembly: AssemblyCopyright("© 2010-2018 Marc Niederwieser, Switzerland, marc.niederwieser@gmx.net. GPL3 Freeware!")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
@@ -42,7 +42,8 @@ namespace MnHibernate
                   + "  finding " + hiberfilSys + " on system drive then it must first be enabled " + Environment.NewLine
                   + "  (on vista and up  with: powercfg.exe -hibernate on ) " + Environment.NewLine
                   + "  otherwise an error message is showed. " + Environment.NewLine
-                  + "  Note: On some systems when hibernation is not available it goes to standby mode instead." + Environment.NewLine,
+                  + "  Note: On some systems when hibernation is not available it goes to standby mode instead." + Environment.NewLine
+                  + "  License: OpenSource GPL3, this is freeware." + Environment.NewLine,
                  "MnHibernate", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
