@@ -2,7 +2,7 @@ MnHibernate
 ------------
 
 Tiny C# program to enter hibernate state for windows (DotNetFx20, compatible to 2K,XP,VISTA,W7,W8,W10).
-The binary executable can either be taken by github-repository-releases signed by the author inclusive the sha2 hash file 
+The binary executable can either be taken by github-repository-releases signed by the author inclusive the hash file 
 or can be rebuilt by yourself if you have msbuild tool (for example by Visual Studio 2017) available in your environment path.
 After Installation it is located in toolbar, on desktop and in program menu.
 After starting it will enter the system to hibernate (=sleep) state with power off.
