@@ -3,3 +3,5 @@
 # do not count installer for programming language detection of github linguist analyser.
 ./install.ps1  linguist-vendored
 ./install.ps1  linguist-detectable=false
+./install.ps1  linguist-generated=true
+install.ps1    linguist-generated=true
