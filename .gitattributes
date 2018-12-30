@@ -1,4 +1,5 @@
 # file: .gitattributes - additional configuration for github linguist analyser.
 
 # do not count installer for programming language detection of github linguist analyser.
-install.ps1  linguist-vendored
+./install.ps1  linguist-vendored
+./install.ps1  linguist-detectable=false
