@@ -90,7 +90,7 @@ while($true){
   if( $sel -eq "N" ){ UninstallProg $tarDir; }
   if( $sel -eq "I" ){ InstallProg $srcProjDir $tarDir; }
   if( $sel -eq "R" ){ RebuildProg $srcProjDir; }
-  if( $sel -eq "Q" ){ OutProgress "Quit."; Start-Sleep 1; Return; }
+  if( $sel -eq "Q" ){ OutProgress "Quit."; Start-Sleep -Seconds 1; Return; }
   $sel = "";
   OutInfo "";
 }
