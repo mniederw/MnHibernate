@@ -1,6 +1,5 @@
-# file: .gitattributes - additional configuration for github linguist analyser.
+# file: .gitattributes - additional configuration for github linguist analyser
+# more see https://github.com/github/linguist/blob/master/docs/overrides.md
 
 # do not count installer for programming language detection of github linguist analyser.
-install.ps1  linguist-vendored
-install.ps1  linguist-generated=true
-# not used: install.ps1  linguist-detectable=false
+/Install.ps1  linguist-documentation
