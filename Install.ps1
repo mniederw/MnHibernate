@@ -11,9 +11,11 @@ function OutProgress                          ( [String] $line ){ Write-Host -Fo
 function OutProgressText                      ( [String] $line ){ Write-Host -ForegroundColor DarkGray -NoNewLine $line; }
 function OutQuestion                          ( [String] $line ){ Write-Host -ForegroundColor Cyan     -NoNewline $line; }
 function FsEntryEsc                           ( [String] $fsentry ){ if( $fsentry -eq "" ){ throw [Exception] "Empty file name not allowed"; } return [String] [Management.Automation.WildcardPattern]::Escape($fsentry); }
-function FsEntryMakeTrailingBackslash         ( [String] $fsEntry ){ [String] $result = $fsEntry; if( -not $result.EndsWith("\") ){ $result += "\"; } return [String] $result; }
-function FsEntryRemoveTrailingBackslash       ( [String] $fsEntry ){ [String] $result = $fsEntry; if( $result -ne "" ){ while( $result.EndsWith("\") ){ $result = $result.Remove($result.Length-1); } if( $result -eq "" ){ $result = $fsEntry; } } return [String] $result; } # leading backslashes are not removed.
-function FsEntryGetFileName                   ( [String] $fsEntry ){ return [String] [System.IO.Path]::GetFileName((FsEntryRemoveTrailingBackslash $fsEntry)); }
+function DirSep                               (){ return [Char] [IO.Path]::DirectorySeparatorChar; }
+function FsEntryHasTrailingDirSep             ( [String] $fsEntry ){ return [Boolean] ($fsEntry.EndsWith("\") -or $fsEntry.EndsWith("/")); }
+function FsEntryRemoveTrailingDirSep          ( [String] $fsEntry ){ [String] $r = $fsEntry; if( $r -ne "" ){ while( FsEntryHasTrailingDirSep $r ){ $r = $r.Remove($r.Length-1); } if( $r -eq "" ){ $r = $fsEntry; } } return [String] $r; }
+function FsEntryMakeTrailingDirSep            ( [String] $fsEntry ){ [String] $result = $fsEntry; if( -not (FsEntryHasTrailingDirSep $result) ){ $result += $(DirSep); } return [String] $result; }
+function FsEntryGetFileName                   ( [String] $fsEntry ){ return [String] [System.IO.Path]::GetFileName((FsEntryRemoveTrailingDirSep $fsEntry)); }
 function FsEntryGetAbsolutePath               ( [String] $fsEntry ){ return [String] ($ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($fsEntry)); }
 function FsEntryGetParentDir                  ( [String] $fsEntry ){ return [String] (Split-Path -LiteralPath (FsEntryGetAbsolutePath $fsEntry)); }
 function FsEntryCreateParentDir               ( [String] $fsEntry ){ [String] $dir = FsEntryGetParentDir $fsEntry; DirCreate $dir; }
@@ -66,8 +68,8 @@ function InstallProg                          ( [String] $srcProjDir, [String] $
                                                 ProcessRestartInElevatedAdminMode;
                                                 DirCreate $tarDir;
                                                 Copy-Item -Force -LiteralPath $srcExe -Destination $tarExe;
-                                                ToolCreateLnkIfNotExists $true "" "$env:USERPROFILE\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\MnHibernate.lnk"    $tarExe;
-                                                ToolCreateLnkIfNotExists $true "" "$env:USERPROFILE\AppData\Roaming\Microsoft\Internet Explorer\Quick Launch\MnHibernate.lnk" $tarExe;
+                                                ToolCreateLnkIfNotExists $true "" "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\MnHibernate.lnk"    $tarExe;
+                                                ToolCreateLnkIfNotExists $true "" "$env:APPDATA\Microsoft\Internet Explorer\Quick Launch\MnHibernate.lnk" $tarExe;
                                               }
 
 while($true){
