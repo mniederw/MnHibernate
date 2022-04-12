@@ -6,10 +6,10 @@ Set-StrictMode -Version Latest; # Prohibits: refs to uninit vars, including unin
 $Global:ErrorActionPreference = "Stop";
 $PSModuleAutoLoadingPreference = "none"; # disable autoloading modules
 trap [Exception] { $Host.UI.WriteErrorLine($_); Read-Host; break; }
-function OutInfo                              ( [String] $line ){ Write-Host -ForegroundColor White               $line; }
-function OutProgress                          ( [String] $line ){ Write-Host -ForegroundColor DarkGray            $line; }
-function OutProgressText                      ( [String] $line ){ Write-Host -ForegroundColor DarkGray -NoNewLine $line; }
-function OutQuestion                          ( [String] $line ){ Write-Host -ForegroundColor Cyan     -NoNewline $line; }
+function OutInfo                              ( [String] $line ){ Write-Host -ForegroundColor White            $line; }
+function OutProgress                          ( [String] $line ){ Write-Host -ForegroundColor Gray             $line; }
+function OutProgressText                      ( [String] $line ){ Write-Host -ForegroundColor Gray  -NoNewLine $line; }
+function OutQuestion                          ( [String] $line ){ Write-Host -ForegroundColor Cyan  -NoNewline $line; }
 function FsEntryEsc                           ( [String] $fsentry ){ if( $fsentry -eq "" ){ throw [Exception] "Empty file name not allowed"; } return [String] [Management.Automation.WildcardPattern]::Escape($fsentry); }
 function DirSep                               (){ return [Char] [IO.Path]::DirectorySeparatorChar; }
 function FsEntryHasTrailingDirSep             ( [String] $fsEntry ){ return [Boolean] ($fsEntry.EndsWith("\") -or $fsEntry.EndsWith("/")); }
