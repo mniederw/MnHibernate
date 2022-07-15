@@ -1,3 +1,4 @@
+#!/usr/bin/env pwsh
 
 # Do not change the following line, it is a powershell statement and not a comment!
 #Requires -Version 3.0
@@ -52,11 +53,11 @@ function RebuildProg                          ( [String] $srcProjDir ){
                                                 if( (ProcessFindExecutableInPath "msbuild") -eq "" ){ throw [Exception] "Missing msbuild in path, make sure it can be found in path, usually it is at: `"${Env:programfiles (x86)}\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\amd64\MSBuild.exe`""; }
                                                 OutProgress "& `"msbuild`" $sln /nologo /verbosity:minimal /m /target:Clean,Build /p:Configuration=Release /p:Platform=`"Any CPU`"";
                                                 <# alternative: /logger:FileLogger,Microsoft.Build.Engine;logfile="$log" #>
-                                                & "msbuild" $sln /nologo /verbosity:minimal /m /target:Clean,Build /p:Configuration=Release /p:Platform="Any CPU";
+                                                & "msbuild" $sln /nologo /verbosity:minimal /m /target:Clean,Build /p:Configuration=Release /p:Platform="Any CPU"; if( -not $? ){ throw [Exception] "Program failed."; }
                                                 OutProgress "CopyTo `"$tarDir`"";
                                                 DirCreate $tarDir; Copy-Item -Force -LiteralPath $intermedExe -Destination $tarDir; 
                                                 OutProgress "MsBuild-Clean";
-                                                & "msbuild" $sln /nologo /verbosity:normal /m /target:Clean /p:Configuration=Release /p:Platform="Any CPU" /noconsolelogger;
+                                                & "msbuild" $sln /nologo /verbosity:normal /m /target:Clean /p:Configuration=Release /p:Platform="Any CPU" /noconsolelogger; if( -not $? ){ throw [Exception] "Program failed."; }
                                               }
 function UninstallProg                        ( [String] $tarDir ){ OutProgress "RemoveDir '$tarDir'. "; if( DirExists $tarDir ){ ProcessRestartInElevatedAdminMode; 
                                                 Remove-Item -Force -Recurse -LiteralPath $tarDir; } }
