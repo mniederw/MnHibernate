@@ -10,12 +10,13 @@ using System.Windows.Forms;
 [assembly: AssemblyConfiguration("For .NET FX20 for 2K,XP,VISTA,W7,W8,W10 and up.")]
 [assembly: AssemblyCompany("Marc Niederwieser")]
 [assembly: AssemblyProduct("MnHibernate")]
-[assembly: AssemblyCopyright("© 2010-2018 Marc Niederwieser, Switzerland, marc.niederwieser@gmx.net. GPL3 Freeware!")]
+[assembly: AssemblyCopyright("© 2010-2023 Marc Niederwieser, Switzerland, marc.niederwieser@gmx.net. GPL3 Freeware!")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
 
-[assembly: AssemblyVersion("1.3")]
+[assembly: AssemblyVersion("1.4")]
+// 2023-05-06 V1.4 refactored help options
 // 2016-10-24 V1.3 prepared for github
 // 2014-03-05 V1.2 minor improvements
 // 2012-12-23 V1.1 minor improvements
@@ -34,9 +35,9 @@ namespace MnHibernate
             var cmdArgs = new List<String>(args).ConvertAll(i =>
               (i.Substring(0, 1) == "/" && Path.DirectorySeparatorChar != '/' ? "-" + i.Substring(1) : i).ToUpper());
 
-            if (cmdArgs.Exists(i => new List<String> { "-?", "-H", "-HELP" }.Contains(i)))
+            if (cmdArgs.Exists(i => new List<String> { "-?", "-H", "--HELP" }.Contains(i)))
             {
-                MessageBox.Show("Usage: MnHibernate [-?|-h|-help] " + Environment.NewLine
+                MessageBox.Show("Usage: MnHibernate [-h|--help|-?] " + Environment.NewLine
                   + "  Enter system to hibernate (=sleep) state with power off. " + Environment.NewLine
                   + "  Note: If hibernation is disabled which can also be detected by not " + Environment.NewLine
                   + "  finding " + hiberfilSys + " on system drive then it must first be enabled " + Environment.NewLine
