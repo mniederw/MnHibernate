@@ -4,7 +4,7 @@
 #Requires -Version 3.0
 param( [String] $sel )
 Set-StrictMode -Version Latest; # Prohibits: refs to uninit vars, including uninit vars in strings; refs to non-existent properties of an object; function calls that use the syntax for calling methods; variable without a name (${}).
-$Global:ErrorActionPreference = "Stop";
+$ErrorActionPreference = "Stop";
 $PSModuleAutoLoadingPreference = "none"; # disable autoloading modules
 trap [Exception] { $Host.UI.WriteErrorLine($_); Read-Host; break; }
 function OutInfo                              ( [String] $line ){ Write-Host -ForegroundColor White            $line; }
@@ -55,11 +55,11 @@ function RebuildProg                          ( [String] $srcProjDir ){
                                                 <# alternative: /logger:FileLogger,Microsoft.Build.Engine;logfile="$log" #>
                                                 & "msbuild" $sln /nologo /verbosity:minimal /m /target:Clean,Build /p:Configuration=Release /p:Platform="Any CPU"; if( -not $? ){ throw [Exception] "Program failed."; }
                                                 OutProgress "CopyTo `"$tarDir`"";
-                                                DirCreate $tarDir; Copy-Item -Force -LiteralPath $intermedExe -Destination $tarDir; 
+                                                DirCreate $tarDir; Copy-Item -Force -LiteralPath $intermedExe -Destination $tarDir;
                                                 OutProgress "MsBuild-Clean";
                                                 & "msbuild" $sln /nologo /verbosity:normal /m /target:Clean /p:Configuration=Release /p:Platform="Any CPU" /noconsolelogger; if( -not $? ){ throw [Exception] "Program failed."; }
                                               }
-function UninstallProg                        ( [String] $tarDir ){ OutProgress "RemoveDir '$tarDir'. "; if( DirExists $tarDir ){ ProcessRestartInElevatedAdminMode; 
+function UninstallProg                        ( [String] $tarDir ){ OutProgress "RemoveDir '$tarDir'. "; if( DirExists $tarDir ){ ProcessRestartInElevatedAdminMode;
                                                 Remove-Item -Force -Recurse -LiteralPath $tarDir; } }
 function InstallProg                          ( [String] $srcProjDir, [String] $tarDir ){
                                                 [String] $name = FsEntryGetFileName $srcProjDir;
@@ -89,7 +89,7 @@ while($true){
     OutQuestion "Enter selection case insensitive and press enter: ";
     $sel = (Read-Host);
   }
-  $Global:ArgsForRestartInElevatedAdminMode = $sel; 
+  $Global:ArgsForRestartInElevatedAdminMode = $sel;
   if( $sel -eq "N" ){ UninstallProg $tarDir; }
   if( $sel -eq "I" ){ InstallProg $srcProjDir $tarDir; }
   if( $sel -eq "R" ){ RebuildProg $srcProjDir; }
