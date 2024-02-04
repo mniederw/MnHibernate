@@ -28,8 +28,8 @@ namespace MnHibernate
     {
         internal static void Main(String[] args)
         {
-            String systemDrive = Path.GetPathRoot(Environment.SystemDirectory); // ex: "C:\"
-            String hiberfilSys = systemDrive + "hiberfil.sys"; // ex: "C:\hiberfil.sys"
+            String systemDrive = Path.GetPathRoot(Environment.SystemDirectory); // Example: "C:\"
+            String hiberfilSys = systemDrive + "hiberfil.sys"; // Example: "C:\hiberfil.sys"
 
             // convert  to upper case and leading "/" to "-" if running on windows
             var cmdArgs = new List<String>(args).ConvertAll(i =>
