@@ -1,16 +1,14 @@
 #!/usr/bin/env pwsh
 
-# Do not change the following line, it is a powershell statement and not a comment!
-#Requires -Version 3.0
-param( [String] $sel )
-Set-StrictMode -Version Latest; # Prohibits: refs to uninit vars, including uninit vars in strings; refs to non-existent properties of an object; function calls that use the syntax for calling methods; variable without a name (${}).
-$ErrorActionPreference = "Stop";
+Param( [String] $sel )
 $PSModuleAutoLoadingPreference = "none"; # disable autoloading modules
-trap [Exception] { $Host.UI.WriteErrorLine($_); Read-Host; break; }
-function OutInfo                              ( [String] $line ){ Write-Host -ForegroundColor White            $line; }
-function OutProgress                          ( [String] $line ){ Write-Host -ForegroundColor Gray             $line; }
-function OutProgressText                      ( [String] $line ){ Write-Host -ForegroundColor Gray  -NoNewLine $line; }
-function OutQuestion                          ( [String] $line ){ Write-Host -ForegroundColor Cyan  -NoNewline $line; }
+Set-StrictMode -Version Latest; trap [Exception] { $Host.UI.WriteErrorLine("Error: $_"); Read-Host "Press Enter to Exit"; break; } $ErrorActionPreference = "Stop";
+function OutStringInColor                     ( [String] $color, [String] $line, [Boolean] $noNewLine = $true ){ Write-Host -ForegroundColor $color -NoNewline:$noNewLine $line; }
+function OutInfo                              ( [String] $line ){ OutStringInColor "White"     $line  $false; }
+function OutWarning                           ( [String] $line ){ OutStringInColor "Yellow"    $line  $false; }
+function OutProgress                          ( [String] $line ){ OutStringInColor "Gray"   "  $line" $false; }
+function OutProgressText                      ( [String] $line ){ OutStringInColor "Gray"   "  $line" $true ; }
+function OutQuestion                          ( [String] $line ){ OutStringInColor "Cyan"      $line  $true ; }
 function FsEntryEsc                           ( [String] $fsentry ){ if( $fsentry -eq "" ){ throw [Exception] "Empty file name not allowed"; } return [String] [Management.Automation.WildcardPattern]::Escape($fsentry); }
 function DirSep                               (){ return [Char] [IO.Path]::DirectorySeparatorChar; }
 function FsEntryHasTrailingDirSep             ( [String] $fsEntry ){ return [Boolean] ($fsEntry.EndsWith("\") -or $fsEntry.EndsWith("/")); }
