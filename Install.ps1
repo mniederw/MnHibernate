@@ -2,13 +2,14 @@
 
 Param( [String] $sel )
 $PSModuleAutoLoadingPreference = "none"; # disable autoloading modules
-Set-StrictMode -Version Latest; trap [Exception] { $Host.UI.WriteErrorLine("Error: $_"); Read-Host "Press Enter to Exit"; break; } $ErrorActionPreference = "Stop";
-function OutStringInColor                     ( [String] $color, [String] $line, [Boolean] $noNewLine = $true ){ Write-Host -ForegroundColor $color -NoNewline:$noNewLine $line; }
-function OutInfo                              ( [String] $line ){ OutStringInColor "White"     $line  $false; }
-function OutWarning                           ( [String] $line ){ OutStringInColor "Yellow"    $line  $false; }
-function OutProgress                          ( [String] $line ){ OutStringInColor "Gray"   "  $line" $false; }
-function OutProgressText                      ( [String] $line ){ OutStringInColor "Gray"   "  $line" $true ; }
-function OutQuestion                          ( [String] $line ){ OutStringInColor "Cyan"      $line  $true ; }
+Set-StrictMode -Version Latest; trap [Exception] { Write-Error $_; Read-Host "Press Enter to Exit"; break; } $ErrorActionPreference = "Stop";
+
+function OutProgress                          ( [String] $line, [Int32] $indentLevel = 1, [Boolean] $noNewLine = $false, [String] $color = "Gray" ){ Write-Host -ForegroundColor $color -noNewline:$noNewLine "$("  "*$indentLevel)$line"; }
+function OutProgressTitle                     ( [String] $line ){ OutProgress $line -indentLevel:0 -color:White; }
+function OutProgressText                      ( [String] $str, [String] $color = "Gray" ){ OutProgress $str -indentLevel:0 -noNewLine:$true -color:$color; }
+function OutWarning                           ( [String] $line, [Int32] $indentLevel = 1 ){ OutProgressText "$("  "*$indentLevel)"; Write-Warning $line; }
+function OutError                             ( [String] $line, [Int32] $indentLevel = 1 ){ $Host.UI.WriteErrorLine("$("  "*$indentLevel)$line"); }
+function OutProgressQuestion                  ( [String] $str  ){ OutProgress $str -indentLevel:0 -noNewLine:$true -color:"Cyan"; }
 function FsEntryEsc                           ( [String] $fsentry ){ if( $fsentry -eq "" ){ throw [Exception] "Empty file name not allowed"; } return [String] [Management.Automation.WildcardPattern]::Escape($fsentry); }
 function DirSep                               (){ return [Char] [IO.Path]::DirectorySeparatorChar; }
 function FsEntryHasTrailingDirSep             ( [String] $fsEntry ){ return [Boolean] ($fsEntry.EndsWith("\") -or $fsEntry.EndsWith("/")); }
@@ -74,17 +75,17 @@ function InstallProg                          ( [String] $srcProjDir, [String] $
 while($true){
   [String] $srcProjDir = "$PSScriptRoot\MnHibernate";
   [String] $tarDir = "$env:ProgramFiles\MnHibernate";
-  OutInfo  "Install Menu";
-  OutInfo  "------------`n";
-  OutInfo  "  Source Project Dir: `"$srcProjDir`"";
-  OutInfo  "  Target Install Dir: `"$tarDir`" `n";
-  OutInfo  "  I = Install by copy rebuilt program exe to target install dir and create shortcuts to prg-menu and toolbar. ";
-  OutInfo  "  N = Uninstall. ";
-  OutInfo  "  R = Rebuild program by the source, requires msbuild program located in path environment variable. ";
-  OutInfo  "  Q = Quit. `n";
+  OutProgressTitle "Install Menu";
+  OutProgressTitle "------------`n";
+  OutProgressTitle "  Source Project Dir: `"$srcProjDir`"";
+  OutProgressTitle "  Target Install Dir: `"$tarDir`" `n";
+  OutProgressTitle "  I = Install by copy rebuilt program exe to target install dir and create shortcuts to prg-menu and toolbar. ";
+  OutProgressTitle "  N = Uninstall. ";
+  OutProgressTitle "  R = Rebuild program by the source, requires msbuild program located in path environment variable. ";
+  OutProgressTitle "  Q = Quit. `n";
   if( $sel -ne "" ){ OutProgress "Selection: $sel "; }
   while( @("I","N","R","Q") -notcontains $sel ){
-    OutQuestion "Enter selection case insensitive and press enter: ";
+    OutProgressQuestion "Enter selection case insensitive and press enter: ";
     $sel = (Read-Host);
   }
   $Global:ArgsForRestartInElevatedAdminMode = $sel;
@@ -93,5 +94,5 @@ while($true){
   if( $sel -eq "R" ){ RebuildProg $srcProjDir; }
   if( $sel -eq "Q" ){ OutProgress "Quit."; Start-Sleep -Seconds 1; Return; }
   $sel = "";
-  OutInfo "";
+  OutProgress "";
 }
