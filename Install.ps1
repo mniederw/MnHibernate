@@ -2,7 +2,7 @@
 
 Param( [String] $sel )
 $PSModuleAutoLoadingPreference = "none"; # disable autoloading modules
-Set-StrictMode -Version Latest; trap [Exception] { Write-Error $_; Read-Host "Press Enter to Exit"; break; } $ErrorActionPreference = "Stop";
+Set-StrictMode -Version Latest; trap [Exception] { Write-Error -ErrorAction Continue $_; Read-Host "Press Enter to Exit"; break; } $ErrorActionPreference = "Stop";
 
 function OutProgress                          ( [String] $line, [Int32] $indentLevel = 1, [Boolean] $noNewLine = $false, [String] $color = "Gray" ){ Write-Host -ForegroundColor $color -noNewline:$noNewLine "$("  "*$indentLevel)$line"; }
 function OutProgressTitle                     ( [String] $line ){ OutProgress $line -indentLevel:0 -color:White; }
